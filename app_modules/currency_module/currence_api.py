@@ -14,10 +14,9 @@ class CurrencyApi:
         self.__api_key = api_key
 
     def __build_url(self, method_type: ApiType, **params):
-        params_str = ''
-        for p in params:
-            params_str += "{}={}&".format(p, params[p])
-        return '{DOMAIN}{METHOD}?{PARAMS}api_key={API_KEY}'.format(
+        params_str = '&'.join('='.join((k, v)) for (k, v) in params.items())
+
+        return '{DOMAIN}{METHOD}?{PARAMS}&api_key={API_KEY}'.format(
             DOMAIN=self.__DOMAIN__,
             METHOD=method_type.value,
             PARAMS=params_str,
