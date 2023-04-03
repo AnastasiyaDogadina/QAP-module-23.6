@@ -17,10 +17,10 @@ class CurrencyApi:
         params_str = ''
         for p in params:
             params_str += "{}={}&".format(p, params[p])
-        return '{DOMAIN}{METHOD}?{params}api_key={API_KEY}'.format(
+        return '{DOMAIN}{METHOD}?{PARAMS}api_key={API_KEY}'.format(
             DOMAIN=self.__DOMAIN__,
             METHOD=method_type.value,
-            params=params_str,
+            PARAMS=params_str,
             API_KEY=self.__api_key
         )
 
