@@ -1,25 +1,45 @@
 import requests
-import os
-
-DOMAIN = 'https://min-api.cryptocompare.com/data/'
+from enum import Enum
 
 
-def get_sys_list():
-    url = '{DOMAIN}blockchain/list?api_key={KEY}'.format(DOMAIN=DOMAIN, KEY=os.getenv('CRYPTO_API_KEY'))
-    r = requests.get(url).json()
-    return [r['Data'][i]['symbol'] for i in r['Data']]
+# Попыталась сделать аналогично классу для телеграм бота, что бы сохранялась общая логика =(
+class CurrencyApi:
+    __DOMAIN__ = 'https://min-api.cryptocompare.com/data/'
 
+    class ApiType(Enum):
+        LIST_METHOD = 'blockchain/list'
+        PRICE_METHOD = 'price'
 
-def single_price(from_symbol, to_symbol):
-    url = '{DOMAIN}price?fsym={FROM}&tsyms={TO}&api_key={KEY}'.format(
-        DOMAIN=DOMAIN,
-        FROM=from_symbol,
-        TO=to_symbol,
-        KEY=os.getenv('CRYPTO_API_KEY')
-    )
-    r = requests.get(url).json()
-    try:
-        return r[list(r.keys())[0]]
-    except Exception as err:
-        print(err)
-        return None
+    def __init__(self, api_key):
+        self.__api_key = api_key
+
+    def __build_url(self, method_type: ApiType, **params):
+        params_str = ''
+        for p in params:
+            params_str += "{}={}&".format(p, params[p])
+        return '{DOMAIN}{METHOD}?{params}api_key={API_KEY}'.format(
+            DOMAIN=self.__DOMAIN__,
+            METHOD=method_type.value,
+            params=params_str,
+            API_KEY=self.__api_key
+        )
+
+    def __make_request(self, method: ApiType, **params):
+        url = self.__build_url(method, **params)
+        return requests.get(url).json()
+
+    def get_sys_list(self):
+        r = self.__make_request(self.ApiType.LIST_METHOD)
+        return [r['Data'][i]['symbol'] for i in r['Data']]
+
+    def single_price(self, from_symbol, to_symbol):
+        params = {
+            'fsym': from_symbol,
+            'tsyms': to_symbol
+        }
+        r = self.__make_request(self.ApiType.PRICE_METHOD, **params)
+        try:
+            return r[list(r.keys())[0]]
+        except Exception as err:
+            print(err)
+            return None
